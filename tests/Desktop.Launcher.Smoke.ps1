@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 . (Join-Path $repo 'scripts/Desktop-Common.ps1')
 $evidence = Get-Content -LiteralPath (Join-Path $repo 'artifacts/desktop-tests/last-install.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-$work = Join-Path $evidence.TestRoot 'launcher smoke'
+$work = Join-Path $evidence.TestRoot ('launcher smoke ' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $work | Out-Null
 $configuration = Read-ManagerLauncherConfiguration (Join-Path $evidence.InstallDirectory 'launcher.json')
 $listener = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
@@ -43,7 +43,13 @@ try {
     [void]$second.Handle
     if (-not $second.WaitForExit(15000) -or $second.ExitCode -ne 0) { throw 'The second launcher did not reopen the running dashboard.' }
     if ($client.GetStringAsync($url).GetAwaiter().GetResult() -notmatch 'Set up your server') { throw 'The second launcher interrupted the first.' }
-    if (@(Get-Content -LiteralPath $browserLog).Count -ne 2) { throw 'The two clicks did not both open the dashboard.' }
+    $deadline = [DateTime]::UtcNow.AddSeconds(5)
+    do {
+        $browserOpens = @(Get-Content -LiteralPath $browserLog -ErrorAction SilentlyContinue)
+        if ($browserOpens.Count -eq 2) { break }
+        Start-Sleep -Milliseconds 100
+    } while ([DateTime]::UtcNow -lt $deadline)
+    if ($browserOpens.Count -ne 2) { throw 'The two clicks did not both open the dashboard.' }
     Write-Output 'Passed: repeated clicks reopen one running dashboard.'
     if (-not $first.WaitForExit(35000) -or $first.ExitCode -ne 0) { throw 'The launcher message loop did not exit cleanly.' }
     $stillRunning = $false
