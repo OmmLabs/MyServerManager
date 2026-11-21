@@ -1,0 +1,75 @@
+@model LogsPage
+@{
+    ViewData["Title"] = "Application Logs";
+}
+<header class="page-heading">
+    <div><div class="eyebrow">Overview</div><h1>Application Logs</h1><p>Read recent systemd journal entries by application.</p></div>
+    @if (Model.Selected is not null)
+    {
+        <a class="btn btn-outline-secondary" asp-controller="Applications" asp-action="Status" asp-route-service="@Model.Selected.ServiceName">Service status</a>
+    }
+</header>
+<section class="panel">
+    @if (Model.Selected is null)
+    {
+        <div class="empty-state">No enabled applications are available.</div>
+    }
+    else
+    {
+        <div class="panel-heading"><h2>@Model.Selected.DisplayName</h2><code class="text-break">@Model.Selected.ServiceName</code></div>
+        <form class="panel-body row g-3 align-items-end" method="get" asp-action="Index">
+            <div class="col-sm-auto">
+                <label for="journal-service" class="form-label">Application</label>
+                <select id="journal-service" name="service" class="form-select">
+                    @foreach (var app in Model.Applications)
+                    {
+                        <option value="@app.ServiceName" selected="@(app.ServiceName == Model.Selected.ServiceName)">@app.DisplayName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-auto">
+                <label for="journal-lines" class="form-label">Entries</label>
+                <select id="journal-lines" name="lines" class="form-select">
+                    @foreach (var limit in new[] { 100, 250, 500 })
+                    {
+                        <option value="@limit" selected="@(limit == Model.LineLimit)">Last @limit</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-auto"><button type="submit" class="btn btn-primary">Refresh</button></div>
+        </form>
+        @if (Model.Journal.Notice is { } notice)
+        {
+            <div class="alert alert-warning mx-3" role="status">@notice</div>
+        }
+        @if (Model.Journal.Entries.Length > 0)
+        {
+            <div class="log-filters panel-body" data-log-filters>
+                <div><label for="journal-level" class="form-label">Severity</label>
+                    <select class="form-select" id="journal-level" data-log-level>
+                        <option value="">All severities</option><option>Error</option><option>Warning</option><option>Information</option><option>Debug</option><option>Unknown</option>
+                    </select>
+                </div>
+                <div><label for="journal-search" class="form-label">Search loaded entries</label><input id="journal-search" data-log-search type="search" class="form-control" placeholder="Search message, timestamp or severity" maxlength="150"></div>
+                <p class="log-count text-body-secondary small mb-0" aria-live="polite"><span data-log-count>@Model.Journal.Entries.Length</span> shown · Loaded @ViewFormat.Timestamp(Model.Journal.LoadedAt)</p>
+            </div>
+            <div class="table-responsive">
+                <table class="table data-table mb-0">
+                    <thead><tr><th scope="col">Timestamp (UTC)</th><th scope="col">Severity</th><th scope="col">Message</th></tr></thead>
+                    <tbody>
+                    @foreach (var entry in Model.Journal.Entries)
+                    {
+                        var tone = entry.Level.ToString() switch { "Error" => "negative", "Warning" => "warning", "Information" => "positive", _ => "neutral" };
+                        <tr data-log-entry="@entry.Level"><td class="text-nowrap">@ViewFormat.Timestamp(entry.Timestamp)</td>
+                            <td><span class="status-pill @tone">@entry.Level</span></td><td><div class="log-message">@entry.Message</div></td></tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else if (Model.Journal.Notice is null)
+        {
+            <div class="empty-state">No journal entries were returned for this service.</div>
+        }
+    }
+</section>

@@ -23,6 +23,9 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+# The MVC log viewer is application source.
+!src/MyServerManager/Views/Logs/
+!src/MyServerManager/Views/Logs/**
 project.lock.json
 project.fragment.lock.json
 ScaffoldingReadMe.txt
