@@ -41,11 +41,11 @@ function Open-Dashboard {
 }
 
 try {
-    $configuration = Get-Content -Raw -LiteralPath $ConfigurationPath | ConvertFrom-Json
-    $port = [int]$configuration.Port
-    if ($port -lt 1 -or $port -gt 65535) {
-        throw 'The saved local port is invalid. Run Create-Desktop-Shortcut.cmd again.'
-    }
+    $commonPath = Join-Path $PSScriptRoot 'Desktop-Common.ps1'
+    if (-not (Test-Path -LiteralPath $commonPath -PathType Leaf)) { throw 'The desktop launcher is incomplete. Run Create-Desktop-Shortcut.cmd again.' }
+    . $commonPath
+    $configuration = Read-ManagerLauncherConfiguration $ConfigurationPath
+    $port = $configuration.Port
 
     $script:dashboardUrl = 'https://localhost:' + $port
     $handler = [Net.Http.HttpClientHandler]::new()
@@ -77,8 +77,8 @@ try {
         return
     }
 
-    $applicationDirectory = [IO.Path]::GetFullPath($configuration.ApplicationDirectory)
-    $stateDirectory = [IO.Path]::GetFullPath($configuration.StateDirectory)
+    $applicationDirectory = $configuration.ApplicationDirectory
+    $stateDirectory = $configuration.StateDirectory
     if (-not (Test-Path -LiteralPath (Join-Path $applicationDirectory 'MyServerManager.dll') -PathType Leaf)) {
         throw 'The installed dashboard is missing. Run Create-Desktop-Shortcut.cmd again.'
     }
@@ -92,11 +92,14 @@ try {
         'MyServerManager.dll',
         '--Manager:Transport=ssh',
         ('--Manager:LocalPort=' + $port),
-        ('--Manager:DataDirectory="' + $stateDirectory + '"')
+        ('--Manager:DataDirectory=' + $stateDirectory)
     )
+    $quotedArguments = ($arguments | ForEach-Object { ConvertTo-ManagerProcessArgument $_ }) -join ' '
+    $dotnet = Get-Command dotnet -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $dotnet) { throw 'The .NET 10 runtime is missing. Install the .NET 10 SDK and run Create-Desktop-Shortcut.cmd again.' }
     $startOptions = @{
-        FilePath = (Get-Command dotnet -ErrorAction Stop).Source
-        ArgumentList = $arguments
+        FilePath = $dotnet.Source
+        ArgumentList = $quotedArguments
         WorkingDirectory = $applicationDirectory
         WindowStyle = 'Hidden'
         RedirectStandardOutput = $outputLog
@@ -156,8 +159,10 @@ try {
     [Windows.Forms.Application]::Run()
 } catch {
     $errorMessage = $_.Exception.Message
-    [IO.File]::AppendAllText((Join-Path $PSScriptRoot 'launcher-error.log'),
-        ([DateTime]::UtcNow.ToString('O') + ' ' + $errorMessage + [Environment]::NewLine))
+    try {
+        [IO.File]::AppendAllText((Join-Path $PSScriptRoot 'launcher-error.log'),
+            ([DateTime]::UtcNow.ToString('O') + ' ' + $errorMessage + [Environment]::NewLine))
+    } catch { }
     [void][Windows.Forms.MessageBox]::Show(
         $errorMessage, 'Server App Manager',
         [Windows.Forms.MessageBoxButtons]::OK, [Windows.Forms.MessageBoxIcon]::Error)

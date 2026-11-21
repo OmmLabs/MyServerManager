@@ -20,6 +20,8 @@ On Windows, double-click **Create-Desktop-Shortcut.cmd** once. It builds the loc
 
 The shortcut reuses your existing local settings. Run **Create-Desktop-Shortcut.cmd** again after updating the source to install the updated build.
 
+Desktop setup supports Windows PowerShell 5.1. Updates preserve the saved data folder and local port, including paths with spaces or non-English characters. Quit the running dashboard through its tray menu before opening an updated build. If setup reports an error, keep your saved state and review its message; a failed settings replacement preserves the previous configuration.
+
 To start directly from PowerShell, run this from the repository root.
 
 ~~~sh
@@ -49,6 +51,8 @@ dotnet build ServerAppManager.slnx
 dotnet test ServerAppManager.slnx
 dotnet publish src/MyServerManager/ServerAppManager.csproj -c Release -p:UseAppHost=false -o artifacts/publish
 ~~~
+
+On Windows, run `powershell -NoProfile -ExecutionPolicy Bypass -File tests/Desktop.Setup.Tests.ps1 -UnitOnly` for the desktop regression checks. Omitting `-UnitOnly` additionally tests installation and reinstallation from an isolated source ZIP. With a trusted local development certificate, `tests/Desktop.Launcher.Smoke.ps1` exercises startup, repeated clicks and shutdown against the resulting test installation. These checks use temporary state and do not connect to Ubuntu.
 
 The published app uses the .NET 10 ASP.NET Core runtime and SSH.NET. Run `dotnet MyServerManager.dll` from the publish directory with a local HTTPS certificate available to Kestrel. Published local state defaults to the current user's local application data folder under `MyServerManager`.
 
