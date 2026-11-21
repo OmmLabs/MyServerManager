@@ -1,0 +1,71 @@
+@model ServerSnapshot
+@using System.Globalization
+<div class="monitoring-grid mb-4">
+    <section class="panel">
+        <div class="panel-heading"><h2>CPU</h2></div>
+        <div class="panel-body pb-0">
+            <div class="metric-label">Total CPU usage</div><div class="metric-value">@ViewFormat.Percent(Model.Cpu.Usage)</div>
+            @if (Model.Cpu.Usage is { } cpu)
+            {
+                <progress class="resource-bar" aria-label="CPU usage" max="100" value="@cpu.ToString(CultureInfo.InvariantCulture)"></progress>
+            }
+        </div>
+        <dl class="detail-grid mb-0">
+            <div><dt>Logical CPU cores</dt><dd>@ViewFormat.Number(Model.Cpu.Cores)</dd></div>
+            <div><dt>Load average (1 min)</dt><dd>@ViewFormat.Number(Model.Cpu.Load1)</dd></div>
+            <div><dt>Load average (5 min)</dt><dd>@ViewFormat.Number(Model.Cpu.Load5)</dd></div>
+            <div><dt>Load average (15 min)</dt><dd>@ViewFormat.Number(Model.Cpu.Load15)</dd></div>
+        </dl>
+    </section>
+    <section class="panel">
+        <div class="panel-heading"><h2>Memory</h2></div>
+        <div class="panel-body pb-0">
+            <div class="metric-label">RAM in use</div><div class="metric-value">@ViewFormat.Percent(Model.Memory.Usage)</div>
+            @if (Model.Memory.Usage is { } memory)
+            {
+                <progress class="resource-bar" aria-label="RAM usage" max="100" value="@memory.ToString(CultureInfo.InvariantCulture)"></progress>
+            }
+        </div>
+        <dl class="detail-grid mb-0">
+            <div><dt>Total RAM</dt><dd>@ViewFormat.Bytes(Model.Memory.Total)</dd></div>
+            <div><dt>Used RAM</dt><dd>@ViewFormat.Bytes(Model.Memory.Used)</dd></div>
+            <div><dt>Available RAM</dt><dd>@ViewFormat.Bytes(Model.Memory.Available)</dd></div>
+            <div><dt>Cached and buffered</dt><dd>@ViewFormat.Bytes(Model.Memory.CachedAndBuffered)</dd></div>
+            <div><dt>Swap total</dt><dd>@ViewFormat.Bytes(Model.Memory.SwapTotal)</dd></div>
+            <div><dt>Swap used</dt><dd>@ViewFormat.Bytes(Model.Memory.SwapUsed)</dd></div>
+        </dl>
+    </section>
+</div>
+<section class="panel mb-4">
+    <div class="panel-heading"><h2>Local filesystems</h2></div>
+    @if (Model.Disks.Length == 0)
+    {
+        <div class="empty-state">Disk metrics are unavailable.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle data-table mb-0">
+                <thead><tr><th scope="col">Filesystem</th><th scope="col">Mount point</th><th scope="col">Total</th><th scope="col">Used</th><th scope="col">Available</th><th scope="col">Usage</th></tr></thead>
+                <tbody>
+                    @foreach (var disk in Model.Disks)
+                    {
+                        <tr><th scope="row">@disk.FileSystem</th><td><code>@disk.MountPoint</code></td><td>@ViewFormat.Bytes(disk.Total)</td>
+                            <td>@ViewFormat.Bytes(disk.Used)</td><td>@ViewFormat.Bytes(disk.Available)</td><td>@ViewFormat.Percent(disk.Usage)</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+<section class="panel">
+    <div class="panel-heading"><h2>System information</h2></div>
+    <dl class="detail-grid mb-0">
+        <div><dt>Hostname</dt><dd class="text-break">@(Model.Host.Hostname ?? ViewFormat.Unavailable)</dd></div>
+        <div><dt>Operating system</dt><dd>@(Model.Host.Distribution ?? ViewFormat.Unavailable)</dd></div>
+        <div><dt>Kernel</dt><dd class="text-break">@(Model.Host.Kernel ?? ViewFormat.Unavailable)</dd></div>
+        <div><dt>.NET runtimes</dt><dd class="text-break">@(Model.Host.Runtime ?? ViewFormat.Unavailable)</dd></div>
+        <div><dt>Server uptime</dt><dd>@ViewFormat.Duration(Model.Cpu.Uptime)</dd></div>
+        <div><dt>Server time</dt><dd>@ViewFormat.Timestamp(Model.ServerTime)</dd></div>
+    </dl>
+</section>

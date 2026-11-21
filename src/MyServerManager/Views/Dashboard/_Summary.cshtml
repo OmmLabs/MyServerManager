@@ -1,0 +1,30 @@
+@model DashboardPage
+@{
+    var apps = Model.Applications;
+    var server = Model.Server;
+    var items = new[] { ("Total applications", apps.Length, "neutral"),
+        ("Running", apps.Count(app => app.Status.State == UnitState.Running), "positive"),
+        ("Stopped", apps.Count(app => app.Status.State == UnitState.Stopped), "neutral"),
+        ("Failed", apps.Count(app => app.Status.State == UnitState.Failed), "negative") };
+    var resources = new (string Label, string Value, string? Detail)[] {
+        ("Total RAM", ViewFormat.Bytes(server.Memory.Total), null),
+        ("Available RAM", ViewFormat.Bytes(server.Memory.Available), server.Memory.Usage is { } ram ? $"{ViewFormat.Percent(ram)} in use" : null),
+        ("Server CPU", ViewFormat.Percent(server.Cpu.Usage), null),
+        ("Root disk usage", ViewFormat.Percent(server.RootDisk?.Usage), null),
+        ("Server uptime", ViewFormat.Duration(server.Cpu.Uptime), null)
+    };
+}
+<section aria-label="Application summary" class="metric-grid app-summary mb-3">
+    @foreach (var (label, value, tone) in items)
+    {
+        <div class="metric"><div class="metric-label"><span class="status-pill @tone me-1"><span class="status-dot" aria-hidden="true"></span></span>@label</div><div class="metric-value">@value</div></div>
+    }
+</section>
+<section aria-label="Server resources" class="metric-grid mb-4">
+    @foreach (var (label, value, detail) in resources)
+    {
+        <div class="metric"><div class="metric-label">@label</div><div class="metric-value">@value</div>
+            @if (detail is not null) { <small class="text-body-secondary">@detail</small> }
+        </div>
+    }
+</section>

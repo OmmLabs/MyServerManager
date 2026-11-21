@@ -1,0 +1,20 @@
+---
+title: Security
+description: Learn how local sign-in, SSH trust, service permissions and vulnerability reporting work.
+---
+
+import RepositoryLinks from '@site/src/components/RepositoryLinks';
+
+# Security
+
+The dashboard listens on local HTTPS. The first-run flow checks the server's SSH host key before submitting a password. The SSH credential stays in memory for the active connection. Session expiration and sign-out close that connection.
+
+The app validates registered service names and uses fixed commands. The Ubuntu account's existing permissions decide what can run. Journal redaction is pattern-based. Keep local registry and audit backups private and review any excerpt before sharing it.
+
+## Report a vulnerability
+
+Use the approved repository's private vulnerability reporting when enabled. Include the affected version, a safe reproduction and the expected impact. Share sample host details and sanitized logs.
+
+<RepositoryLinks section="security" />
+
+[Connection guide](/docs/connection/) · [Privacy](/privacy/).

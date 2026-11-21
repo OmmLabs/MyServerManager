@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Server App Manager": {
+      "commandName": "Project",
+      "environmentVariables": { "ASPNETCORE_ENVIRONMENT": "Development" }
+    }
+  }
+}

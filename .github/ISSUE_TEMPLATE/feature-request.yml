@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest a change to a dashboard workflow, the website or the documentation
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the task and where the current workflow gets in the way.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What outcome would help?
+      description: Include any relevant environment or permissions using example details.
+    validations:
+      required: true

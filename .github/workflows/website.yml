@@ -1,0 +1,68 @@
+name: Project website
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build site and check links
+    runs-on: ubuntu-latest
+    env:
+      SERVER_APP_MANAGER_SITE_URL: ${{ vars.SERVER_APP_MANAGER_SITE_URL || 'https://serverappmanager.ommrudraksha.com' }}
+      SERVER_APP_MANAGER_INDEXING: ${{ github.event_name == 'workflow_dispatch' && vars.SERVER_APP_MANAGER_INDEXING || 'false' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - name: Check approved Pages origin
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        env:
+          PAGES_ORIGIN: ${{ vars.SERVER_APP_MANAGER_SITE_URL }}
+        run: |
+          if [[ ! "$PAGES_ORIGIN" =~ ^https://[a-zA-Z0-9.-]+$ ]]; then
+            echo 'Set SERVER_APP_MANAGER_SITE_URL to the confirmed HTTPS origin.'
+            exit 1
+          fi
+      - name: Install locked dependencies
+        working-directory: website
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Check package advisories
+        working-directory: website
+        run: npm audit --omit=dev --audit-level=high
+      - name: Build
+        working-directory: website
+        run: npm run build
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        with:
+          path: website/build
+
+  publish:
+    name: Publish GitHub Pages
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    concurrency:
+      group: server-app-manager-pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy reviewed site
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

@@ -1,0 +1,19 @@
+@model DashboardPage
+@inject MyServerManager.Services.PreferencesStore Preferences
+@{
+    ViewData["Title"] = "Dashboard";
+}
+<header class="page-heading">
+    <div><div class="eyebrow">Overview</div><h1>Dashboard</h1><p>Application and server status at a glance.</p></div>
+    <button class="btn btn-outline-secondary" type="button" data-refresh="dashboard-summary dashboard-apps" aria-controls="dashboard-summary dashboard-apps">Refresh</button>
+</header>
+<div id="dashboard-summary" data-poll-url="@Url.Action("Summary")" data-poll-ms="@(Math.Min(Preferences.Current.CpuSeconds, Preferences.Current.ApplicationSeconds) * 1000)">
+    <partial name="_Summary" model="Model" />
+</div>
+<section class="panel">
+    <div class="panel-heading"><h2>Applications</h2><a asp-controller="Applications" asp-action="Index" class="btn btn-outline-secondary btn-sm">Manage applications</a></div>
+    <div id="dashboard-apps" data-poll-url="@Url.Action("ApplicationList")" data-poll-ms="@(Preferences.Current.ApplicationSeconds * 1000)">
+        <partial name="_ApplicationList" model="Model.Applications.Where(app => app.Definition.Enabled).ToArray()" />
+    </div>
+</section>
+<div class="small text-body-secondary mt-2" data-refresh-status role="status"></div>

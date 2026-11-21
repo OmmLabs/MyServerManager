@@ -1,0 +1,13 @@
+@model ApplicationStatus
+@inject MyServerManager.Services.PreferencesStore Preferences
+@{
+    ViewData["Title"] = Model.Definition.DisplayName;
+}
+<header class="page-heading">
+    <div><a asp-action="Index" class="breadcrumb-link">← Applications</a><h1>@Model.Definition.DisplayName</h1><p>@Model.Definition.ServiceName</p></div>
+    <button class="btn btn-outline-secondary" type="button" data-refresh="application-details" aria-controls="application-details">Refresh</button>
+</header>
+<section class="panel" id="application-details" data-poll-url="@Url.Action("Details", new { service = Model.Definition.ServiceName })" data-poll-ms="@(Preferences.Current.ApplicationSeconds * 1000)">
+    <partial name="_Details" model="Model" />
+</section>
+<div class="small text-body-secondary mt-2" data-refresh-status role="status"></div>

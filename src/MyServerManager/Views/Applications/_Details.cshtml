@@ -1,0 +1,22 @@
+@model ApplicationStatus
+@{ ViewData["OperationSource"] = "details"; }
+<div class="panel-heading"><h2>Service details</h2><div><partial name="_StatusPill" model="Model.Status" /></div></div>
+<dl class="detail-grid mb-0">
+    <div><dt>Main PID</dt><dd>@ViewFormat.Number(Model.Status.MainPid)</dd></div>
+    <div><dt>Unit substate</dt><dd>@(Model.Status.SubState ?? ViewFormat.Unavailable)</dd></div>
+    <div><dt>Memory</dt><dd>@ViewFormat.Bytes(Model.Status.MemoryBytes)</dd></div>
+    <div><dt>Peak memory</dt><dd>@ViewFormat.Bytes(Model.Status.PeakBytes)</dd></div>
+    <div><dt>CPU time</dt><dd>@ViewFormat.CpuTime(Model.Status.CpuNanoseconds)</dd></div>
+    <div><dt>Processes</dt><dd>@ViewFormat.Number(Model.Status.ProcessCount)</dd></div>
+    <div><dt>Tasks</dt><dd>@ViewFormat.Number(Model.Status.Tasks)</dd></div>
+    <div><dt>Service uptime</dt><dd>@ViewFormat.Duration(Model.Status.Uptime)</dd></div>
+    <div><dt>Configured port</dt><dd>@ViewFormat.Number(Model.Definition.Port)</dd></div>
+    <div><dt>Deployment directory</dt><dd class="text-break">@(Model.Definition.DeploymentDirectory ?? ViewFormat.Unavailable)</dd></div>
+    <div><dt>Assembly</dt><dd class="text-break">@(Model.Definition.AssemblyName ?? ViewFormat.Unavailable)</dd></div>
+    <div><dt>Environment</dt><dd>@(Model.Definition.Environment ?? ViewFormat.Unavailable)</dd></div>
+</dl>
+@if (Model.Definition.Description is { } description)
+{
+    <p class="px-3 text-body-secondary">@description</p>
+}
+<div class="panel-body pt-0"><partial name="_ApplicationActions" model="Model" /></div>

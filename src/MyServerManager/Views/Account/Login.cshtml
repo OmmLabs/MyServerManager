@@ -1,0 +1,40 @@
+@model MyServerManager.Controllers.LoginInput
+@inject MyServerManager.Configuration.ManagerMode Mode
+@inject MyServerManager.Configuration.ServerProfileStore Profiles
+@{
+    ViewData["Title"] = "Sign in";
+}
+<section class="login-card panel" aria-labelledby="login-title">
+    <div class="brand-mark mb-4"><svg class="icon" aria-hidden="true"><use href="/icons.svg#server"></use></svg></div>
+    <div class="eyebrow">Server administration</div>
+    <h1 id="login-title" class="h3 mb-2">Server App Manager</h1>
+    @if (Mode.UsesSsh)
+    {
+        <p class="text-body-secondary mb-1">Enter the password you use to connect to Ubuntu.</p>
+        <p class="small text-body-secondary text-break mb-4">@Profiles.Current?.Endpoint.DisplayName</p>
+    }
+    else
+    {
+        <p class="text-body-secondary mb-4">Sign in to manage your Ubuntu server.</p>
+    }
+    @if (TempData["Message"] is string message)
+    {
+        <div class="alert alert-info" role="status">@message</div>
+    }
+    <form method="post" asp-action="Login" data-operation>
+        <input asp-for="ReturnUrl" type="hidden">
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+        @if (!Mode.UsesSsh)
+        {
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Username" class="form-control" maxlength="64" autocomplete="username" required autofocus>
+            </div>
+        }
+        <div class="mb-4">
+            <label for="Password" class="form-label">@(Mode.UsesSsh ? "Ubuntu password" : "Password")</label>
+            <input id="Password" name="Password" type="password" class="form-control" maxlength="@(Mode.UsesSsh ? 1024 : 128)" autocomplete="current-password" autofocus="@Mode.UsesSsh" required>
+        </div>
+        <button class="btn btn-primary w-100" type="submit">Sign in</button>
+    </form>
+</section>

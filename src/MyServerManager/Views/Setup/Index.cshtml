@@ -1,0 +1,19 @@
+@model MyServerManager.Controllers.ServerAddressInput
+@{ ViewData["Title"] = "Set up your server"; }
+<section class="login-card panel" aria-labelledby="setup-title">
+    <div class="brand-mark mb-4"><svg class="icon" aria-hidden="true"><use href="/icons.svg#server"></use></svg></div>
+    <div class="eyebrow">Server App Manager</div>
+    <h1 id="setup-title" class="h3 mb-2">Set up your server</h1>
+    <p class="text-body-secondary mb-4">Enter the SSH address you use to connect to Ubuntu.</p>
+    @if (TempData["Message"] is string message)
+    {
+        <div class="alert alert-info" role="status">@message</div>
+    }
+    <form method="post" asp-action="CheckAddress" data-operation>
+        <input asp-for="ReturnUrl" type="hidden">
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+        <label asp-for="Address" class="form-label">SSH address</label>
+        <input asp-for="Address" class="form-control mb-3" placeholder="ubuntu@server.example.com" maxlength="350" required autofocus>
+        <button type="submit" class="btn btn-primary w-100">Continue</button>
+    </form>
+</section>

@@ -1,0 +1,20 @@
+@model ApplicationStatus[]
+@{ ViewData["OperationSource"] = "dashboard"; }
+@if (Model.Length == 0)
+{
+    <div class="empty-state">Enable a registered application in Settings to see it here.</div>
+}
+@foreach (var application in Model)
+{
+    <div class="application-line">
+        <div><a asp-controller="Applications" asp-action="Status" asp-route-service="@application.Definition.ServiceName" class="app-name">@application.Definition.DisplayName</a>
+            <div class="text-body-secondary small text-break">@application.Definition.ServiceName</div></div>
+        <div><partial name="_StatusPill" model="application.Status" /></div>
+        <dl class="app-quick-metrics">
+            <div><dt>Memory</dt><dd>@ViewFormat.Bytes(application.Status.MemoryBytes)</dd></div>
+            <div><dt>CPU time</dt><dd>@ViewFormat.CpuTime(application.Status.CpuNanoseconds)</dd></div>
+            <div><dt>Port</dt><dd>@ViewFormat.Number(application.Definition.Port)</dd></div>
+        </dl>
+        <div class="application-line-actions"><partial name="_ApplicationActions" model="application" /></div>
+    </div>
+}

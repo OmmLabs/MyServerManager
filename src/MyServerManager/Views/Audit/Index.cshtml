@@ -1,0 +1,39 @@
+@model MyServerManager.Controllers.AuditPage
+@{
+    ViewData["Title"] = "Audit History";
+}
+<header class="page-heading">
+    <div><div class="eyebrow">Administration</div><h1>Audit History</h1><p>Service operations and configuration changes, with timestamps in UTC.</p></div>
+</header>
+<section class="panel">
+    <form class="panel-body row g-3 align-items-end" method="get" asp-action="Index">
+        <div class="col-sm-auto"><label asp-for="From" class="form-label">From (UTC)</label><input asp-for="From" type="date" class="form-control"></div>
+        <div class="col-sm-auto"><label asp-for="To" class="form-label">Through (UTC)</label><input asp-for="To" type="date" class="form-control"></div>
+        <div class="col-sm-auto"><label asp-for="Action" class="form-label"></label><select asp-for="Action" asp-items="Html.GetEnumSelectList<AuditAction>()" class="form-select"><option value="">All actions</option></select></div>
+        <div class="col-sm-auto"><button type="submit" class="btn btn-primary">Apply filters</button></div>
+    </form>
+    @if (Model.Entries.Count == 0)
+    {
+        <div class="empty-state">No matching operations in this date range.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 data-table">
+                <thead><tr><th scope="col">Timestamp</th><th scope="col">Target</th><th scope="col">Action</th><th scope="col">User</th><th scope="col">Result</th><th scope="col">Details</th></tr></thead>
+                <tbody>
+                @foreach (var entry in Model.Entries)
+                {
+                    var (label, tone) = entry.Succeeded switch { true => ("Succeeded", "positive"), false => ("Failed", "negative"), _ => ("Pending", "warning") };
+                    <tr><td class="text-nowrap">@ViewFormat.Timestamp(entry.Timestamp)</td><td>@entry.Target<br><code>@entry.ServiceName</code></td>
+                        <td>@entry.Action</td><td>@entry.Username</td><td><span class="status-pill @tone">@label</span></td><td>@entry.Message</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        @if (Model.Entries.Count == MyServerManager.Services.AuditService.DisplayLimit)
+        {
+            <div class="panel-body small text-body-secondary">Showing the latest @Model.Entries.Count matches. Narrow the date range to see earlier entries.</div>
+        }
+    }
+</section>

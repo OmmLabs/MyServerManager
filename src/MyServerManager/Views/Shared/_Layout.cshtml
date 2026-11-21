@@ -1,0 +1,84 @@
+@inject MyServerManager.Services.PreferencesStore Preferences
+@inject MyServerManager.Configuration.ManagerMode Mode
+@{
+    var currentController = ViewContext.RouteData.Values["controller"] as string;
+    var groups = new[] {
+        ("Overview", new[] { ("Dashboard", "Dashboard", "dashboard"), ("Applications", "Applications", "apps"),
+            ("Server Monitoring", "Monitoring", "activity"), ("Website Health", "Websites", "globe"), ("Application Logs", "Logs", "logs") }),
+        ("Services", new[] { ("Nginx", "Nginx", "layers"), ("Database", "Database", "database") }),
+        ("Administration", new[] { ("Audit History", "Audit", "history"), ("Settings", "Settings", "settings") })
+    };
+}
+<!doctype html>
+<html lang="en" data-bs-theme="@Preferences.Current.Theme">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewData["Title"] · Server App Manager</title>
+    <link rel="icon" href="~/icons.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="~/vendor/bootstrap/bootstrap.min.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
+</head>
+<body>
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <a class="visually-hidden-focusable skip-link" href="#main">Skip to content</a>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a asp-controller="Dashboard" asp-action="Index" class="brand">
+                <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="/icons.svg#server"></use></svg></span>
+                <span>Server App Manager<small>Server administration</small></span>
+            </a>
+            <nav aria-label="Main navigation">
+                @foreach (var (label, items) in groups)
+                {
+                    <div class="nav-group">
+                        <div class="nav-caption">@label</div>
+                        @foreach (var (text, controller, icon) in items)
+                        {
+                            var active = currentController == controller;
+                            <a asp-controller="@controller" asp-action="Index" class="side-link @(active ? "active" : "")" aria-current="@(active ? "page" : null)">
+                                <svg class="icon" aria-hidden="true"><use href="/icons.svg#@icon"></use></svg>@text
+                            </a>
+                        }
+                    </div>
+                }
+            </nav>
+        </aside>
+        <div class="workspace">
+            <header class="topbar">
+                @if (Mode.UsesSsh)
+                {
+                    <a class="topbar-context" asp-controller="Connection" asp-action="Index">
+                        <svg class="icon" aria-hidden="true"><use href="/icons.svg#server"></use></svg>
+                        Connected to Ubuntu
+                    </a>
+                }
+                else
+                {
+                    <span class="topbar-context"><svg class="icon" aria-hidden="true"><use href="/icons.svg#server"></use></svg> Single server</span>
+                }
+                <div class="session">
+                    <span class="session-name">@User.Identity.Name</span>
+                    <form method="post" asp-controller="Account" asp-action="Logout">
+                        <button class="btn btn-sm btn-outline-secondary" type="submit">Sign out</button>
+                    </form>
+                </div>
+            </header>
+            <main id="main" class="main-content">
+                @if (TempData["Message"] is string message)
+                {
+                    <div class="alert @(TempData["Succeeded"] is true ? "alert-success" : "alert-danger")" role="status">@message</div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+}
+else
+{
+    <main class="login-shell">@RenderBody()</main>
+}
+</body>
+</html>

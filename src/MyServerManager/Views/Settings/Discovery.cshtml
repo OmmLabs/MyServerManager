@@ -1,0 +1,57 @@
+@model MyServerManager.Controllers.DiscoveryPage
+@{ ViewData["Title"] = "Find apps"; }
+<header class="page-heading">
+    <div><div class="eyebrow">Applications</div><h1>Find apps</h1><p>Review the .NET services found on your server and choose which ones to add.</p></div>
+    <form method="post" asp-action="ScanApplications" data-operation>
+        <button type="submit" class="btn btn-primary">Scan for apps</button>
+    </form>
+</header>
+<section class="panel">
+    @if (Model.Scan is not { } scan)
+    {
+        <div class="empty-state">Click Scan for apps to look for .NET services.</div>
+    }
+    else
+    {
+        @if (scan.Notice is { } notice)
+        {
+            <div class="panel-body border-bottom small" role="status">@notice</div>
+        }
+        @if (scan.Applications.Length == 0)
+        {
+            <div class="empty-state">No .NET services were found. You can add a service by name in Settings.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table data-table align-middle mb-0">
+                    <thead><tr><th>Service</th><th>Status</th><th>Deployment directory</th><th>Assembly</th><th>Listening port</th><th>Registry</th></tr></thead>
+                    <tbody>
+                    @foreach (var app in scan.Applications)
+                    {
+                        var entry = app.Definition;
+                        <tr>
+                            <th scope="row"><code>@entry.ServiceName</code></th>
+                            <td>@app.State</td>
+                            <td class="text-break">@(entry.DeploymentDirectory ?? ViewFormat.Unavailable)</td>
+                            <td>@(entry.AssemblyName ?? ViewFormat.Unavailable)</td>
+                            <td>@ViewFormat.Number(entry.Port)</td>
+                            <td>
+                                @if (Model.Registered.Contains(entry.ServiceName))
+                                {
+                                    <span class="status-pill positive">Registered</span>
+                                }
+                                else
+                                {
+                                    <a class="btn btn-sm btn-outline-primary" asp-action="ReviewDiscovered" asp-route-service="@entry.ServiceName" asp-fragment="registry-editor">Review and add</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            <p class="panel-body small text-body-secondary mb-0">You can enter the website address when you review a service.</p>
+        }
+    }
+</section>

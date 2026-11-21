@@ -1,0 +1,2 @@
+# Base defaults for the dedicated account. approve-services.sh adds literal command rules.
+Defaults:myservermanager env_reset, !setenv, !requiretty, secure_path="/usr/sbin:/usr/bin:/sbin:/bin"

@@ -1,0 +1,14 @@
+@model WebsiteRow[]
+@inject MyServerManager.Services.PreferencesStore Preferences
+@inject MyServerManager.Configuration.ManagerMode Mode
+@{
+    ViewData["Title"] = "Website Health";
+}
+<header class="page-heading">
+    <div><div class="eyebrow">Overview</div><h1>Website Health</h1><p>HTTP availability from @(Mode.UsesSsh ? "this computer" : "this server"). See Applications for each systemd service's status.</p></div>
+    <button class="btn btn-outline-secondary" type="button" data-refresh="website-table" aria-controls="website-table">Refresh results</button>
+</header>
+<section class="panel" id="website-table" data-poll-url="@Url.Action("Table")" data-poll-ms="@(Math.Min(Preferences.Current.WebsiteSeconds, 30) * 1000)">
+    <partial name="_Table" model="Model" />
+</section>
+<div class="small text-body-secondary mt-2" data-refresh-status role="status"></div>

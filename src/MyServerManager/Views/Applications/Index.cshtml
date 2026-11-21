@@ -1,0 +1,19 @@
+@model ApplicationStatus[]
+@inject MyServerManager.Services.PreferencesStore Preferences
+@{
+    ViewData["Title"] = "Applications";
+}
+<header class="page-heading">
+    <div><div class="eyebrow">Overview</div><h1>Applications</h1><p>Manage your registered systemd services.</p></div>
+    <div class="d-flex flex-wrap gap-2">
+        <form method="post" asp-controller="Settings" asp-action="ScanApplications" data-operation>
+            <button type="submit" class="btn btn-primary">Find apps</button>
+        </form>
+        <button class="btn btn-outline-secondary" type="button" data-refresh="application-table" aria-controls="application-table">Refresh</button>
+        <a asp-controller="Settings" asp-action="Index" class="btn btn-outline-secondary">Manage registry</a>
+    </div>
+</header>
+<section class="panel" id="application-table" data-poll-url="@Url.Action("Table")" data-poll-ms="@(Preferences.Current.ApplicationSeconds * 1000)">
+    <partial name="_Table" model="Model" />
+</section>
+<div class="small text-body-secondary mt-2" data-refresh-status role="status"></div>
