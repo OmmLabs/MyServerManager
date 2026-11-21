@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MyServerManager</RootNamespace>
+    <AssemblyName>MyServerManager</AssemblyName>
+    <Product>Server App Manager</Product>
+    <Title>Server App Manager</Title>
+    <Version>0.1.0-preview.1</Version>
+    <RepositoryUrl>https://github.com/OmmLabs/MyServerManager</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>Copyright (c) 2026 OmmLabs</Copyright>
+    <DefaultItemExcludes>$(DefaultItemExcludes);.manager-state/**</DefaultItemExcludes>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="SSH.NET" Version="2026.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="config/applications.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="../../THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="../../LICENSE" Link="LICENSE" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="../../licenses/SSH.NET.txt" Link="licenses/SSH.NET.txt" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="../../licenses/BouncyCastle.Cryptography.md" Link="licenses/BouncyCastle.Cryptography.md" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

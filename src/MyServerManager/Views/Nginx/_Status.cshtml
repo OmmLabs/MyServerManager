@@ -1,0 +1,30 @@
+@model NginxStatus
+@{
+    var controls = new[] {
+        ("check", "Check configuration", "btn-primary", (string?)null),
+        ("reload", "Reload Nginx", "btn-outline-primary", "Reload Nginx? Website requests may be temporarily affected."),
+        ("restart", "Restart Nginx", "btn-outline-danger", "Restart Nginx? Websites behind this proxy may become temporarily unavailable.")
+    };
+    var disabled = !Model.ControlsEnabled || !Model.Service.Exists || Model.Service.HasPendingJob;
+}
+<div class="panel-heading"><h2>Proxy status</h2><div><partial name="_StatusPill" model="Model.Service" /></div></div>
+<dl class="detail-grid mb-0">
+    <div><dt>Systemd service</dt><dd><code>@Model.Service.ServiceName</code></dd></div>
+    <div><dt>Nginx version</dt><dd>@(Model.Version ?? ViewFormat.Unavailable)</dd></div>
+    <div><dt>Unit substate</dt><dd>@(Model.Service.SubState ?? ViewFormat.Unavailable)</dd></div>
+    <div><dt>Main PID</dt><dd>@ViewFormat.Number(Model.Service.MainPid)</dd></div>
+    <div><dt>Service uptime</dt><dd>@ViewFormat.Duration(Model.Service.Uptime)</dd></div>
+</dl>
+<div class="panel-body pt-0">
+    <p class="text-body-secondary small">@(Model.ControlsEnabled ? "Configuration validation runs before reload and restart." : "The server operator must enable controls for the verified Nginx installation.")</p>
+    <div class="app-actions">
+        @foreach (var (action, label, tone, confirmation) in controls)
+        {
+            <form method="post" asp-action="Operate" data-operation data-confirm="@confirmation">
+                <input name="operation" type="hidden" value="@action">
+                <input name="confirmed" type="hidden" value="false">
+                <button class="btn @tone" type="submit" disabled="@disabled">@label</button>
+            </form>
+        }
+    </div>
+</div>

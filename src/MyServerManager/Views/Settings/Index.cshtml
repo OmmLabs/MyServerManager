@@ -1,0 +1,115 @@
+@model MyServerManager.Controllers.SettingsPage
+@{
+    ViewData["Title"] = "Settings";
+    var editing = Model.OriginalService is not null;
+}
+<header class="page-heading">
+    <div><div class="eyebrow">Administration</div><h1>Settings</h1><p>@(Model.RequiresOperatorApproval ? "Manage applications, monitoring, appearance and the administrator password." : "Manage your saved server, applications and dashboard settings.")</p></div>
+    @if (!Model.RequiresOperatorApproval)
+    {
+        <a asp-controller="Connection" asp-action="Index" class="btn btn-outline-secondary">Server settings</a>
+    }
+</header>
+<div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+<section class="panel mb-4">
+    <div class="panel-heading">
+        <h2>Registered applications</h2>
+        <div class="d-flex flex-wrap gap-2">
+            <form method="post" asp-action="ScanApplications" data-operation>
+                <button type="submit" class="btn btn-sm btn-outline-primary">Find apps</button>
+            </form>
+            <a asp-action="Index" asp-fragment="registry-editor" class="btn btn-sm btn-outline-secondary">Add application</a>
+        </div>
+    </div>
+    @if (Model.Applications.Length == 0)
+    {
+        <div class="empty-state">The registry is empty.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 data-table">
+                <thead><tr><th scope="col">Application</th><th scope="col">Unit</th><th scope="col">Registry</th><th scope="col">Control access</th><th scope="col">Order</th><th scope="col">Actions</th></tr></thead>
+                <tbody>
+                    @foreach (var entry in Model.Applications)
+                    {
+                        <tr>
+                            <th scope="row">@entry.DisplayName</th><td><code>@entry.ServiceName</code></td>
+                            <td>@(entry.Enabled ? "Enabled" : "Disabled")</td>
+                            <td>@(!Model.RequiresOperatorApproval ? "SSH account" : Model.Approved.Contains(entry.ServiceName) ? "Approved" : "Pending approval")</td>
+                            <td>@entry.DisplayOrder</td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a asp-action="Index" asp-route-service="@entry.ServiceName" asp-fragment="registry-editor" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    <form method="post" asp-action="RemoveApplication" data-operation data-confirm="Remove @entry.DisplayName from this dashboard? You can register the service again later.">
+                                        <input name="service" type="hidden" value="@entry.ServiceName">
+                                        <input name="source" type="hidden" value="settings">
+                                        <input name="confirmed" type="hidden" value="false">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+<section class="panel mb-4" id="registry-editor">
+    <div class="panel-heading"><h2>@(editing ? "Edit application" : "Register an application")</h2></div>
+    <form class="panel-body" method="post" asp-action="SaveApplication" data-operation>
+        <p class="text-body-secondary small">@(Model.RequiresOperatorApproval ? "New registrations require an existing canonical systemd unit and operator approval." : "Connect over SSH to verify the exact systemd unit before registration.") Disabling an entry removes it from monitoring and controls.</p>
+        <input asp-for="OriginalService" type="hidden">
+        <div class="row g-3">
+            <div class="col-md-6"><label asp-for="Editor.DisplayName" class="form-label">Display name</label><input asp-for="Editor.DisplayName" class="form-control" maxlength="100" required></div>
+            <div class="col-md-6"><label asp-for="Editor.ServiceName" class="form-label">Systemd service</label><input asp-for="Editor.ServiceName" class="form-control" maxlength="128" placeholder="example.service" readonly="@editing" required></div>
+            <div class="col-md-6"><label asp-for="Editor.WebsiteUrl" class="form-label">Website URL</label><input asp-for="Editor.WebsiteUrl" type="url" class="form-control" maxlength="500" placeholder="https://example.com"></div>
+            <div class="col-sm-6 col-md-3"><label asp-for="Editor.Port" class="form-label">Port</label><input asp-for="Editor.Port" class="form-control" min="1" max="65535"></div>
+            <div class="col-sm-6 col-md-3"><label asp-for="Editor.DisplayOrder" class="form-label">Display order</label><input asp-for="Editor.DisplayOrder" class="form-control" min="0" max="10000" required></div>
+            <div class="col-md-6"><label asp-for="Editor.DeploymentDirectory" class="form-label">Deployment directory</label><input asp-for="Editor.DeploymentDirectory" class="form-control" maxlength="400" placeholder="/opt/example"></div>
+            <div class="col-md-3"><label asp-for="Editor.AssemblyName" class="form-label">Assembly</label><input asp-for="Editor.AssemblyName" class="form-control" maxlength="150" placeholder="Example.dll"></div>
+            <div class="col-md-3"><label asp-for="Editor.Environment" class="form-label">Environment label</label><input asp-for="Editor.Environment" class="form-control" maxlength="50"></div>
+            <div class="col-12"><label asp-for="Editor.Description" class="form-label">Description</label><input asp-for="Editor.Description" class="form-control" maxlength="400"></div>
+        </div>
+        <div class="form-check my-3"><input asp-for="Editor.Enabled" class="form-check-input"><label asp-for="Editor.Enabled" class="form-check-label">Enable monitoring and controls</label></div>
+        <button type="submit" class="btn btn-primary">Save application</button>
+    </form>
+</section>
+<section class="panel mb-4">
+    <div class="panel-heading"><h2>Monitoring and appearance</h2></div>
+    <form class="panel-body" method="post" asp-action="SavePreferences" data-operation>
+        <div class="row g-3 mb-3">
+            <div class="col-sm-6 col-lg-4"><label asp-for="Preferences.Theme" class="form-label"></label>
+                <select asp-for="Preferences.Theme" class="form-select"><option value="light">Light</option><option value="dark">Dark</option></select></div>
+            <div class="col-sm-6 col-lg-4"><label asp-for="Preferences.ApplicationSeconds" class="form-label">Application status and memory (s)</label><input asp-for="Preferences.ApplicationSeconds" class="form-control" min="5" max="300" required></div>
+            <div class="col-sm-6 col-lg-4"><label asp-for="Preferences.CpuSeconds" class="form-label">Server CPU (s)</label><input asp-for="Preferences.CpuSeconds" class="form-control" min="3" max="60" required></div>
+            <div class="col-sm-6 col-lg-4"><label asp-for="Preferences.MemorySeconds" class="form-label">Server memory (s)</label><input asp-for="Preferences.MemorySeconds" class="form-control" min="5" max="300" required></div>
+            <div class="col-sm-6 col-lg-4"><label asp-for="Preferences.DiskSeconds" class="form-label">Disk usage (s)</label><input asp-for="Preferences.DiskSeconds" class="form-control" min="30" max="600" required></div>
+            <div class="col-sm-6 col-lg-4"><label asp-for="Preferences.WebsiteSeconds" class="form-label">Website health (s)</label><input asp-for="Preferences.WebsiteSeconds" class="form-control" min="30" max="3600" required></div>
+            <div class="col-sm-6 col-lg-4"><label asp-for="Preferences.SqlSeconds" class="form-label">SQL Server status (s)</label><input asp-for="Preferences.SqlSeconds" class="form-control" min="15" max="600" required></div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save preferences</button>
+    </form>
+</section>
+@if (Model.RequiresOperatorApproval)
+{
+<section class="panel">
+    <div class="panel-heading"><h2>Administrator password</h2></div>
+    <form class="panel-body" method="post" asp-action="ChangePassword" data-operation>
+        <p class="text-body-secondary small">Use a unique passphrase with at least 15 characters. Changing it expires existing sessions.</p>
+        <div class="row g-3 mb-3">
+            <div class="col-md-4"><label for="CurrentPassword" class="form-label">Current password</label><input id="CurrentPassword" name="CurrentPassword" class="form-control" type="password" autocomplete="current-password" maxlength="128" required></div>
+            <div class="col-md-4"><label for="NewPassword" class="form-label">New password</label><input id="NewPassword" name="NewPassword" class="form-control" type="password" autocomplete="new-password" minlength="15" maxlength="128" required></div>
+            <div class="col-md-4"><label for="ConfirmPassword" class="form-label">Repeat new password</label><input id="ConfirmPassword" name="ConfirmPassword" class="form-control" type="password" autocomplete="new-password" minlength="15" maxlength="128" required></div>
+        </div>
+        <button type="submit" class="btn btn-outline-primary">Change password</button>
+    </form>
+</section>
+}
+<section class="panel mt-4" aria-labelledby="about-heading">
+    <div class="panel-heading"><h2 id="about-heading">About Server App Manager</h2></div>
+    <div class="panel-body">
+        <p class="mb-0">Sponsored by <a href="https://ommrudraksha.com/" rel="noreferrer">Omm Rudraksha</a>.</p>
+    </div>
+</section>

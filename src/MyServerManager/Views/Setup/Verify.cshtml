@@ -1,0 +1,21 @@
+@model MyServerManager.Controllers.VerifyServerPage
+@{ ViewData["Title"] = "Verify your server"; }
+<section class="login-card panel" aria-labelledby="verify-title">
+    <h1 id="verify-title" class="h3 mb-2">Verify your server</h1>
+    <p class="text-body-secondary text-break mb-3">@Model.Endpoint.DisplayName</p>
+    <p class="small">Compare this SSH key fingerprint with the one you trust for this server.</p>
+    <p><code class="text-break">@Model.Endpoint.Fingerprints[0]</code></p>
+    <form method="post" asp-action="Register" data-operation>
+        <input asp-for="Token" type="hidden">
+        <input asp-for="ReturnUrl" type="hidden">
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+        <div class="form-check mb-3">
+            <input id="Confirmed" name="Confirmed" value="true" class="form-check-input" type="checkbox" required>
+            <label for="Confirmed" class="form-check-label">This fingerprint matches my server</label>
+        </div>
+        <label for="Password" class="form-label">Ubuntu password</label>
+        <input id="Password" name="Password" class="form-control mb-3" type="password" autocomplete="current-password" maxlength="1024" required>
+        <button type="submit" class="btn btn-primary w-100">Save server and sign in</button>
+    </form>
+    <a asp-action="Index" class="d-inline-block mt-3 small">Change SSH address</a>
+</section>

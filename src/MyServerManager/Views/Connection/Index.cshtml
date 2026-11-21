@@ -1,0 +1,25 @@
+@model string
+@{
+    ViewData["Title"] = "Server connection";
+}
+<header class="page-heading">
+    <div><div class="eyebrow">Single server</div><h1>Server connection</h1><p>Server App Manager is connected to Ubuntu over SSH.</p></div>
+</header>
+<section class="panel connection-panel">
+    <div class="panel-heading">
+        <h2><code class="text-break">@Model</code></h2>
+        <span class="status-pill positive"><span class="status-dot" aria-hidden="true"></span>Connected</span>
+    </div>
+    <div class="panel-body d-flex flex-wrap gap-2">
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary">Open dashboard</a>
+        <form method="post" asp-controller="Account" asp-action="Logout" data-operation><button class="btn btn-outline-secondary" type="submit">Sign out</button></form>
+    </div>
+    <div class="panel-body border-top">
+        <h2 class="h6">Remove saved server</h2>
+        <p class="small text-body-secondary">Removing the server signs you out and archives its application list and audit history on this computer.</p>
+        <form method="post" asp-action="Deregister" data-operation data-confirm="Remove the saved server @Model and sign out?">
+            <input name="confirmed" type="hidden" value="false">
+            <button class="btn btn-outline-danger" type="submit">Remove server</button>
+        </form>
+    </div>
+</section>

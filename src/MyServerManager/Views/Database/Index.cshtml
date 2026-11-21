@@ -1,0 +1,13 @@
+@model ServiceStatus
+@inject MyServerManager.Services.PreferencesStore Preferences
+@{
+    ViewData["Title"] = "Database";
+}
+<header class="page-heading">
+    <div><div class="eyebrow">Services</div><h1>Database</h1><p>Microsoft SQL Server service monitoring.</p></div>
+    <button class="btn btn-outline-secondary" type="button" data-refresh="sql-status" aria-controls="sql-status">Refresh status</button>
+</header>
+<section class="panel" id="sql-status" data-poll-url="@Url.Action("Status")" data-poll-ms="@(Preferences.Current.SqlSeconds * 1000)">
+    <partial name="_Status" model="Model" />
+</section>
+<div class="small text-body-secondary mt-2" data-refresh-status role="status"></div>

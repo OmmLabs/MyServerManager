@@ -1,0 +1,13 @@
+@model ServerSnapshot
+@inject MyServerManager.Services.PreferencesStore Preferences
+@{
+    ViewData["Title"] = "Server Monitoring";
+}
+<header class="page-heading">
+    <div><div class="eyebrow">Overview</div><h1>Server Monitoring</h1><p>CPU, memory, disks and system information for this host.</p></div>
+    <button class="btn btn-outline-secondary" type="button" data-refresh="server-metrics" aria-controls="server-metrics">Refresh</button>
+</header>
+<div id="server-metrics" data-poll-url="@Url.Action("Metrics")" data-poll-ms="@(Preferences.Current.CpuSeconds * 1000)">
+    <partial name="_Metrics" model="Model" />
+</div>
+<div class="small text-body-secondary mt-2" data-refresh-status role="status"></div>

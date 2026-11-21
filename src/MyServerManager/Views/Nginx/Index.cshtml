@@ -1,0 +1,26 @@
+@model NginxPage
+@inject MyServerManager.Services.PreferencesStore Preferences
+@{
+    ViewData["Title"] = "Nginx";
+}
+<header class="page-heading">
+    <div><div class="eyebrow">Services</div><h1>Nginx</h1><p>Inspect the reverse proxy and validate its configuration before applying changes.</p></div>
+    <button class="btn btn-outline-secondary" type="button" data-refresh="nginx-status" aria-controls="nginx-status">Refresh status</button>
+</header>
+<section class="panel mb-4" id="nginx-status" data-poll-url="@Url.Action("Status")" data-poll-ms="@(Preferences.Current.ApplicationSeconds * 1000)">
+    <partial name="_Status" model="Model.Status" />
+</section>
+<section class="panel">
+    <div class="panel-heading"><h2>Last operation result</h2><a class="btn btn-outline-secondary btn-sm" asp-controller="Audit" asp-action="Index">Audit history</a></div>
+    @if (Model.LastOperation is { } entry)
+    {
+        var (label, tone) = entry.Succeeded switch { true => ("Succeeded", "positive"), false => ("Failed", "negative"), _ => ("Pending", "warning") };
+        <div class="panel-body"><div class="d-flex flex-wrap gap-2 align-items-center mb-2"><span class="status-pill @tone">@label</span>
+            <span class="text-body-secondary small">@ViewFormat.Timestamp(entry.Timestamp) · @entry.Username</span></div><p class="mb-0">@entry.Message</p></div>
+    }
+    else
+    {
+        <div class="empty-state">No Nginx operations have been recorded.</div>
+    }
+</section>
+<div class="small text-body-secondary mt-2" data-refresh-status role="status"></div>

@@ -1,0 +1,29 @@
+[Unit]
+Description=My Server Manager
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=exec
+User=myservermanager
+Group=myservermanager
+WorkingDirectory=/opt/myservermanager/current
+Environment=DOTNET_ENVIRONMENT=Production
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=Manager__Transport=linux
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5300
+EnvironmentFile=/etc/myservermanager/manager.env
+ExecStart=/usr/bin/dotnet /opt/myservermanager/current/MyServerManager.dll
+StateDirectory=myservermanager
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=70s
+KillMode=mixed
+# The argument-restricted sudo commands require the setuid transition.
+NoNewPrivileges=no
+
+[Install]
+WantedBy=multi-user.target

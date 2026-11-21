@@ -1,0 +1,28 @@
+name: Bug report
+description: Report a reproducible problem with the dashboard or project website
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: For vulnerabilities, use the repository Security tab. Use example hostnames and sanitized logs in public reports.
+  - type: input
+    id: versions
+    attributes:
+      label: App and system versions
+      description: Include the dashboard version, Windows version and Ubuntu version where applicable.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Use sample units and addresses. Include the smallest example that shows the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and observed result
+      description: A short sanitized error or screenshot can help.
+    validations:
+      required: true

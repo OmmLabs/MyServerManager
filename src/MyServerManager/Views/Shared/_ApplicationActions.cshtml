@@ -1,0 +1,44 @@
+@model ApplicationStatus
+@{
+    var unit = Model.Definition.ServiceName;
+    var canControl = Model.CanControl && Model.Status.Exists && !Model.Status.HasPendingJob;
+    var source = ViewData["OperationSource"] as string;
+    var controls = new[] { ("Start", "btn-outline-secondary"), ("Stop", "btn-outline-danger"), ("Restart", "btn-outline-primary") };
+}
+<div class="app-actions">
+    @foreach (var (label, tone) in controls)
+    {
+        var confirm = label == "Start" ? null : $"{label} {Model.Definition.DisplayName}? The application may become temporarily unavailable.";
+        <form method="post" asp-controller="Applications" asp-action="Operate" data-operation data-confirm="@confirm">
+            <input type="hidden" name="service" value="@unit">
+            <input type="hidden" name="operation" value="@label.ToLowerInvariant()">
+            <input type="hidden" name="source" value="@source">
+            <input type="hidden" name="confirmed" value="false">
+            <button type="submit" class="btn btn-sm @tone" disabled="@(!canControl)">@label</button>
+        </form>
+    }
+    @if (source != "details")
+    {
+        <a class="btn btn-sm btn-outline-secondary" asp-controller="Applications" asp-action="Status" asp-route-service="@unit">Status</a>
+    }
+    @if (Model.Definition.Enabled)
+    {
+        <a class="btn btn-sm btn-outline-secondary" asp-controller="Logs" asp-action="Index" asp-route-service="@unit">Logs</a>
+    }
+    @if (Model.Definition.WebsiteUrl is { } url && source != "dashboard")
+    {
+        <a class="btn btn-sm btn-outline-secondary" href="@url" target="_blank" rel="noopener noreferrer">Open website</a>
+    }
+    @if (source != "dashboard")
+    {
+        <form method="post" asp-controller="Settings" asp-action="RemoveApplication" data-operation data-confirm="Remove @Model.Definition.DisplayName from this dashboard? You can register the service again later.">
+            <input type="hidden" name="service" value="@unit">
+            <input type="hidden" name="confirmed" value="false">
+            <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+        </form>
+    }
+</div>
+@if (Model.Definition.Enabled && !Model.CanControl)
+{
+    <small class="text-body-secondary">Operator approval required for controls</small>
+}

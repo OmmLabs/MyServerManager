@@ -1,0 +1,14 @@
+@model ServiceStatus
+@{
+    var tone = Model.HasPendingJob ? "warning" : Model.State switch
+    {
+        UnitState.Running => "positive",
+        UnitState.Failed => "negative",
+        _ => "neutral"
+    };
+}
+<span class="status-pill @tone"><span class="status-dot" aria-hidden="true"></span>@Model.State</span>
+@if (Model.Detail is { } detail)
+{
+    <small class="d-block text-body-secondary mt-1">@detail</small>
+}

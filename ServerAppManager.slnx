@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/MyServerManager/ServerAppManager.csproj" />
+  <Project Path="tests/MyServerManager.Tests/ServerAppManager.Tests.csproj" />
+</Solution>

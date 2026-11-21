@@ -1,0 +1,24 @@
+@model ServiceStatus
+@inject MyServerManager.Configuration.ManagerMode Mode
+<div class="panel-heading"><h2>Microsoft SQL Server</h2><div><partial name="_StatusPill" model="Model" /></div></div>
+@if (!Model.Exists)
+{
+    <div class="empty-state">@(Model.Detail == "Unit not found" ? "No Microsoft SQL Server service was detected." : "The SQL Server service could not be inspected.")</div>
+}
+<dl class="detail-grid mb-0">
+    <div><dt>Systemd service</dt><dd><code>@Model.ServiceName</code></dd></div>
+    <div><dt>Current memory</dt><dd>@ViewFormat.Bytes(Model.MemoryBytes)</dd></div>
+    <div><dt>Peak memory</dt><dd>@ViewFormat.Bytes(Model.PeakBytes)</dd></div>
+    <div><dt>CPU time</dt><dd>@ViewFormat.CpuTime(Model.CpuNanoseconds)</dd></div>
+    <div><dt>Service uptime</dt><dd>@ViewFormat.Duration(Model.Uptime)</dd></div>
+</dl>
+@if (Mode.UsesSsh && Model.Exists)
+{
+    <div class="panel-body pt-0">
+        <form method="post" asp-controller="Database" asp-action="Restart" data-operation
+              data-confirm="Restart SQL Server? Apps that use this database may be temporarily unavailable.">
+            <input name="confirmed" type="hidden" value="false">
+            <button class="btn btn-outline-danger" type="submit" disabled="@Model.HasPendingJob">Restart SQL Server</button>
+        </form>
+    </div>
+}
